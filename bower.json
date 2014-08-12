@@ -1,0 +1,21 @@
+{
+  "name": "email-stats",
+  "version": "0.0.0",
+  "authors": [
+    "Jeremy Peter <jeremy.peter@meltmedia.com>"
+  ],
+  "description": "Get email stats",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "chartjs": "~1.0.1",
+    "lodash": "~2.4.1"
+  }
+}

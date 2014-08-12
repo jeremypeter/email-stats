@@ -1,0 +1,23 @@
+{
+  "name": "email-stats",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "express": "~4.2.0",
+    "static-favicon": "~1.0.0",
+    "morgan": "~1.0.0",
+    "cookie-parser": "~1.0.1",
+    "body-parser": "~1.0.0",
+    "debug": "~0.7.4",
+    "jade": "~1.3.0",
+    "createsend-node": "~0.7.2",
+    "bluebird": "~2.2.2",
+    "lodash": "~2.4.1",
+    "ejs": "~1.0.0",
+    "mongodb": "*",
+    "mongoskin": "*"
+  }
+}
