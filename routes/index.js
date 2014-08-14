@@ -6,4 +6,9 @@ router.get('/', function(req, res) {
   res.render('index', {title: 'Email Stats'});
 });
 
+/* GET highchart page*/
+router.get('/highcharts', function(req, res){
+  res.render('highchart');
+})
+
 module.exports = router;

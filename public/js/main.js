@@ -24,6 +24,7 @@ var colors = ['#309762','#7c5f70','#94d4ac','#b3df4a','#d34751','#011af3','#bb25
 
 var dataArr = [];
 var dataObj = {}
+var total = 0;
 
 _.each(DATA[0].emailClients, function(camp){
 
@@ -37,20 +38,21 @@ _.each(DATA[0].emailClients, function(camp){
         dataObj[version.Client][version.Version] = { value: 0 };
       }
 
-      dataObj[version.Client][version.Version].value += version.Percentage;
-      // console.log(dataObj);
+      dataObj[version.Client][version.Version].value += version.Subscribers;
+      total += version.Subscribers;
 
     });
 
 });
 
-
 _.each(dataObj, function(clientObj, clientName){
 
   _.each(clientObj, function(versionObj, versionName){
     
+    var perc = Math.f
+
     dataArr.push({
-      value: versionObj.value,
+      value: +Number(versionObj.value/total * 100).toFixed(2),
       label: versionName,
       color: getRandomColor(),
       hightlight: '#444444'
@@ -59,10 +61,13 @@ _.each(dataObj, function(clientObj, clientName){
 
 });
 
+console.log(dataArr);
 
 var ctx = document.getElementById("myChart").getContext("2d");
 
-var myNewChart = new Chart(ctx).Doughnut(dataArr);
+var myNewChart = new Chart(ctx).Doughnut(dataArr, {
+  legendTemplate: "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"
+});
 
 function getRandomColor() {
         var letters = '0123456789ABCDEF'.split('');
