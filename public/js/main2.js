@@ -1,11 +1,10 @@
 $(function () {
 
-  var dataArr = [];
   var dataObj = {}
   var total = 0;
 
   _.each(DATA[0].emailClients, function(camp){
-
+    
       _.each(camp, function(version){
 
         if(!dataObj[version.Client]){
@@ -23,112 +22,241 @@ $(function () {
 
   });
 
-  var clientData = [];
-  var versionData = [];
-  var clients;
-  var versions;
 
-  var others;
-  var othersTotal = 0;
-  var otherVersions = {};
-  otherVersions.id = 'Others';
-  otherVersions.data = [];
+  /*
+  * This creates the inital object that contains the properties needed to 
+  * pass to chart.series.data and chart.drilldown.series.data
+  * 
+  * @param {Object} clientObj
+  * @param {String} clientName
+  *
+  * @returns {Object} object literal 
+  */
 
-  _.each(dataObj, function(clientObj, clientName){
-    
+  function initDataObj(clientObj, clientName){
+
     var versionLength = Object.keys(clientObj).length;
 
-    // Create an empty object for that will hold the name and y value
-    // Set the name of email client and y value to start at 0;
-    clients = {};
-    clients.name = clientName
-    clients.y = 0
+    // object used for any "series.data" objects
+    var client = {};
 
-    // If there is more than one version of an email client, let's 
-    // drill down to those specific versions
-    if(versionLength > 1 ) {  clients.drilldown = clientName };
+    // properties for config.series.data  
+    client.name = clientName;
+    client.y = 0;
+    if(versionLength > 1) { client.drilldown = clientName } 
 
-    // Create object that will be filled with the different client versions
-    versions = {};
-    versions.id = clientName;
-    versions.data = [];
+    // properties for drilldown.series.data 
+    client.id = clientName;
+    client.data = [];
+
+    return client;
+  }
 
 
-    // Loop through each client version and add the totals 
-    _.each(clientObj, function(versionObj, versionName){
 
-      // Add the total value of all versions of email client
-      clients.y += versionObj.value;
-
-      // Create drilldown data
-      versions.data.push({ name: versionName, y: versionObj.value })
-
-    });
-
-    // Create others category
-    var average = Number(clients.y/total * 100);
-    if(average < 2){
-
-      others = {};
-      others.name = 'Others';
-      others.y = othersTotal += clients.y
-      others.drilldown = 'Others';
-
-      otherVersions.data.push({ name: clients.name, y: clients.y });
-
-      versionData.push(otherVersions);
-
-    }else{
-      clientData.push(clients);
-      versionData.push(versions)
-    }
-    
-  });
+  /*
+  * This creates the initial data array containing all of the email clients
+  * 
+  * @param {Object} dataObj
+  *
+  * @returns {Array} array containing a series of data
+  */
   
-  clientData.push(others)
-
-  function getClientData(dataObj){
+  function buildSeriesData(dataObj){
 
     var clientData = [];
     var clients;
 
     _.each(dataObj, function(clientObj, clientName){
-     
-      clients = {};
-      clients.name = clientName;
-      clients.y = 0;
-      clients.versionLength = Object.keys(clientObj).length;
-
-      _.each(clientObj, function(versionObj, versionName){
-        clients.y += versionObj.value;
-      });
-
+      clients = initDataObj(clientObj, clientName); 
+      clients = getTotalAndBuildData(clientObj, clients);
       clientData.push(clients);
-
     });
 
-    return clientData;
+    var sorted = _.sortBy(clientData, 'y').reverse()
+
+    return sorted;
   }
 
-  function getVersionData(dataObj){
+
+  /*
+  * This creates the inital object that contains the properties needed to 
+  * pass to chart.series.data and chart.drilldown.series.data
+  * 
+  * @param {Object} clientObj
+  * @param {String} clientName
+  *
+  * @returns {Object} object literal 
+  */
+
+  function getTotalAndBuildData(clientObj, seriesObj){
+
+    _.each(clientObj, function(versionObj, versionName){
+         
+        // y value in a chart 
+        seriesObj.y += versionObj.value;
+
+        // drilldown data
+        seriesObj.data.push({ name: versionName, y: versionObj.value })
+      });
+
+      return seriesObj;
+  }
+
+
+  /*
+  * Add "Others" data to series that combines the clients that are 
+  * less than 2% of the email market share
+  * 
+  * @param {Object} dataObj
+  *
+  * @returns {Array} new series data  
+  */
+
+  function addClientData(dataObj){
+    var data = buildSeriesData(dataObj);
+    var otherClients = _.filter(data, isLessThanAverage);
+    var total = getTotal(otherClients, 'y');
+    var newData = _.filter(data, isGreaterThanAverage);
+
+    newData.push({
+      name: 'Others',
+      y: total,
+      drilldown: 'Others',
+      id: 'Others',
+      data: otherClients
+    });
+  
+    return newData;
+  }
+
+
+  /*
+  * Joins clients into one
+  * 
+  * @param {Object} dataObj
+  * @param {String} clientName
+  * @param {Array} arr
+  *
+  * @returns {Array} new series data 
+  */
+
+  function joinClientData(dataObj, clientName, arr){
+    var data = addClientData(dataObj);
+    var clients = _.filter(data, itemExists.bind(null, arr)); 
+    var newData = _.filter(data, itemMissing.bind(null, arr));
+
+    var total = getTotal(clients, 'y');
+  
+    newData.push({
+      name: clientName,
+      y: total
+    });
     
+    var sorted = _.sortBy(newData, 'y').reverse();
+
+    return sorted;
   }
 
-  console.log(getClientData(dataObj));
+
+  /*
+  * Checks if item exists in an array
+  *
+  * @param {Array} arr
+  * @param {Object} client
+  *
+  * @returns {Boolean} true or false
+  */
+
+  function itemExists(arr, client){
+    return arr.indexOf(client.name) !== -1;
+  }
 
 
-  // console.log(clientData);
-  // console.log(versionData);
+  /*
+  * Checks if item is missing in an array
+  *
+  * @param {Array} arr
+  * @param {Object} client
+  *
+  * @returns {Boolean} true or false
+  */
+
+  function itemMissing(arr, client){
+    return arr.indexOf(client.name) == -1;
+  }
+
+
+  /*
+  * Calculate total of y values 
+  *
+  * @param {Object} obj
+  * @param {String} prop
+  *
+  * @returns {Number} total
+  */
+
+  function getTotal(obj, prop){
+    return _.reduce(_.pluck(obj, prop), getSum);
+  }
+
+
+  /*
+  * Calculates sum 
+  *
+  * @param {Number} sum
+  * @param {Number} num
+  *
+  * @returns {Number} sum
+  */
+
+  function getSum(sum, num){
+    return sum + num;
+  }
+
+
+  /*
+  * Is client less than 2% average 
+  *
+  * @param {Object} client
+  *
+  * @returns {Boolean} true or false
+  */
+
+  function isLessThanAverage(client){
+    return client.y/total * 100 < 2;
+  }
+
+
+  /*
+  * Is client > than 2% average 
+  *
+  * @param {Object} client
+  *
+  * @returns {Boolean} true or false
+  */
+
+  function isGreaterThanAverage(client){
+    return client.y/total * 100 > 2;
+  }
+
+
+  var finalData = joinClientData(dataObj, 'Outlook.com', ['Hotmail', 'Outlook.com']);
+  // var finalData = buildSerie/sData(dataObj);
+
+
+  // console.log(dataObj);
 
   var config = {
       chart: {
           type: 'pie',
           plotBackgroundColor: null,
           plotBorderWidth: null,
-          plotShadow: false
+          plotShadow: false,
+          // spacingLeft: -100
       },
       title: {
-          text: 'Browser market shares at a specific website, 2014'
+          text: 'Email market share 2012-2014'
       },
       tooltip: {
           pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -136,7 +264,19 @@ $(function () {
       legend: {
         layout: 'vertical',
         align: 'right',
-        borderWidth: 1
+        borderWidth: 1,
+        itemMarginBottom: 5,
+        verticalAlign: 'middle',
+        itemStyle: {
+          fontWeight: 'normal'
+        },
+        // labelFormat: '{name}{percentage}',
+        labelFormatter: function(){
+          console.log(this);
+          return '<strong>' + this.name + '</strong> (' + Number(this.percentage).toFixed(1) + '%)' ;
+        },
+        y: 0,
+        x: 0
       },
       plotOptions: {
           pie: {
@@ -151,14 +291,20 @@ $(function () {
       series: [{
           type: 'pie',
           name: 'Email Market share',
-          data: clientData
+          data: finalData
       }],
       drilldown: {
-        series: versionData
+        series: finalData
       }
   }
 
   // Build the chart
+  var chart = $('#container').highcharts();
+  console.log(chart);
   $('#container').highcharts(config);
+  $(window).resize(function(){
+    var wi = $(this).width()
+    console.log(wi);
+  })
 
 });
