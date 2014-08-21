@@ -1,5 +1,7 @@
 $(function () {
 
+  'use strict';
+
   var dataObj = {}
   var total = 0;
 
@@ -224,6 +226,7 @@ $(function () {
   */
 
   function isLessThanAverage(client){
+    console.log(client);
     return client.y/total * 100 < 2;
   }
 
@@ -254,7 +257,12 @@ $(function () {
           plotBorderWidth: null,
           plotShadow: false,
           // spacingLeft: -100
+          renderTo: 'container'
       },
+      rangeSelector: {
+            enabled: true
+        },
+
       title: {
           text: 'Email market share 2012-2014'
       },
@@ -272,7 +280,6 @@ $(function () {
         },
         // labelFormat: '{name}{percentage}',
         labelFormatter: function(){
-          console.log(this);
           return '<strong>' + this.name + '</strong> (' + Number(this.percentage).toFixed(1) + '%)' ;
         },
         y: 0,
@@ -299,12 +306,10 @@ $(function () {
   }
 
   // Build the chart
-  var chart = $('#container').highcharts();
-  console.log(chart);
   $('#container').highcharts(config);
-  $(window).resize(function(){
-    var wi = $(this).width()
-    console.log(wi);
-  })
+
+  // Grab chart object
+  var chart = $('#container').highcharts();
+  
 
 });
