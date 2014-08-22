@@ -2,27 +2,27 @@ $(function () {
 
   'use strict';
 
-  var dataObj = {}
-  var total = 0;
+  
+  function buildDataObj(data){
+    var dataObj = {}
+    dataObj.total = data.total;
 
-  _.each(DATA[0].emailClients, function(camp){
-    
-      _.each(camp, function(version){
+    _.each(data.emailClients, function(version){
 
-        if(!dataObj[version.Client]){
-          dataObj[version.Client] = {};
-        }
+      if(!dataObj[version.Client]){
+        dataObj[version.Client] = {};
+      }
 
-        if(!dataObj[version.Client][version.Version]){
-          dataObj[version.Client][version.Version] = { value: 0 };
-        }
+      if(!dataObj[version.Client][version.Version]){
+        dataObj[version.Client][version.Version] = { value: 0 };
+      }
 
-        dataObj[version.Client][version.Version].value += version.Subscribers;
-        total += version.Subscribers;
+      dataObj[version.Client][version.Version].value += version.Subscribers;
 
-      });
+    });
 
-  });
+    return dataObj;
+  }
 
 
   /*
@@ -37,7 +37,7 @@ $(function () {
 
   function initDataObj(clientObj, clientName){
 
-    var versionLength = Object.keys(clientObj).length;
+    var versionLength = _.keys(clientObj).length;
 
     // object used for any "series.data" objects
     var client = {};
@@ -72,6 +72,7 @@ $(function () {
     _.each(dataObj, function(clientObj, clientName){
       clients = initDataObj(clientObj, clientName); 
       clients = getTotalAndBuildData(clientObj, clients);
+      clients.total = dataObj.total;
       clientData.push(clients);
     });
 
@@ -226,8 +227,7 @@ $(function () {
   */
 
   function isLessThanAverage(client){
-    console.log(client);
-    return client.y/total * 100 < 2;
+    return client.y/client.total * 100 < 2;
   }
 
 
@@ -240,15 +240,11 @@ $(function () {
   */
 
   function isGreaterThanAverage(client){
-    return client.y/total * 100 > 2;
+    return client.y/client.total * 100 > 2;
   }
 
-
-  var finalData = joinClientData(dataObj, 'Outlook.com', ['Hotmail', 'Outlook.com']);
-  // var finalData = buildSerie/sData(dataObj);
-
-
-  // console.log(dataObj);
+  var data = buildDataObj(DATA);
+  var finalData = joinClientData(data, 'Outlook.com', ['Hotmail', 'Outlook.com']);
 
   var config = {
       chart: {
@@ -278,7 +274,6 @@ $(function () {
         itemStyle: {
           fontWeight: 'normal'
         },
-        // labelFormat: '{name}{percentage}',
         labelFormatter: function(){
           return '<strong>' + this.name + '</strong> (' + Number(this.percentage).toFixed(1) + '%)' ;
         },
@@ -286,19 +281,19 @@ $(function () {
         x: 0
       },
       plotOptions: {
-          pie: {
-              // allowPointSelect: true,
-              cursor: 'pointer',
-              dataLabels: {
-                  enabled: false
-              },
-              showInLegend: true
-          }
+        pie: {
+          // allowPointSelect: true,
+          cursor: 'pointer',
+          dataLabels: {
+              enabled: false
+          },
+          showInLegend: true
+        }
       },
       series: [{
-          type: 'pie',
-          name: 'Email Market share',
-          data: finalData
+        type: 'pie',
+        name: 'Email Market share',
+        data: finalData
       }],
       drilldown: {
         series: finalData
