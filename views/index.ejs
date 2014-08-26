@@ -3,35 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <title>Email stats</title>
+  <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <h1>Email stats</h1>
-
-  <canvas id="myChart" width="400" height="400"></canvas>
-
-  <div id="wrapper">
-    
-    <h2>User List</h2>
-    
-    <div id="userList">
-      <table>
-        <thead>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Delete?</th>
-        </thead>
-        <tbody>
-          
-        </tbody>
-      </table>
+  
+  <div class="main">
+    <div class="years">
+      <span class="title">Filter years</span>
+      <select name="years" id="years">  
+      <option value="all">All</option>
+      <option value="2014">2014</option>
+      <option value="2013">2013</option>
+      <option value="2012">2012</option>
+    </select>
     </div>
-
+    <div id="container"></div>
+    
   </div>
 
   <script src='http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
   <script src="/lodash/dist/lodash.min.js"></script>
-  <script src="/chartjs/Chart.min.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="http://code.highcharts.com/modules/drilldown.js"></script>
   <script src="/js/data.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/global.js"></script>

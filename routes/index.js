@@ -12,7 +12,7 @@ router.get('/highcharts', function(req, res){
   res.render('highchart');
 })
 
-router.get('/test', function(req, res){
+router.get('/api/data', function(req, res){
 	emailData('Genentech')
 		.then(function(data){
 			res.json(data);

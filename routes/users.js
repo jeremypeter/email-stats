@@ -4,9 +4,8 @@ var router = express.Router();
 /* GET userslist. */
 router.get('/userlist', function(req, res){
   var db = req.db;
-  console.log(db);
+
   db.collection('userlist').find().toArray(function(err, item){
-    console.log(item);
     res.json(item);
   });
 });
